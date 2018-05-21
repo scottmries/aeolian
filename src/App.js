@@ -1,12 +1,19 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+// import logo from './logo.svg';
 import Synthesizer from './Synthesizer.js';
 import './App.css';
 
 class App extends Component {
   render() {
     return (
-      <div className="App">
+      <div className="App" style={{ overflow: 'hidden' }}>
+        <ReactCSSTransitionGroup 
+          transitionName="fade"
+          transitionAppear={true}
+          transitionAppearTimeout={500}
+          transitionEnter={false}
+          transitionLeave={false}>
         <div className="container">
         <header className="App-header">
           <h1 className="App-title">aeolian.xyz</h1>
@@ -25,6 +32,7 @@ class App extends Component {
           <p>Built with React</p>
         </footer>
         </div>
+        </ReactCSSTransitionGroup>
       </div>
     );
   }

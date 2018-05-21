@@ -1,54 +1,61 @@
 import React, { Component } from 'react';
 
 class Voice extends Component {
+
+  generateNotes(offset) {
+    let startTime = offset;
+    let notes = [];
+    for (var i = 0; i < 100; i++) {
+      const wait = (Math.floor(Math.random() * 50000) + 5000) / 1000
+      const length = (Math.floor(Math.random() * 12500) + 1000) / 1000
+      notes.push({
+        startTime: startTime,
+        length: length
+      })
+      startTime += wait + length
+    }
+    console.log(notes)
+    return { notes: notes, notesEndTime: startTime }
+  }
+
   constructor(props) {
     super(props);
 
-    let context = new (window.AudioContext || window.webkitAudioContext)();
-    let oscillator = context.createOscillator();
-    let gainNode = context.createGain();
+    let oscillator = this.props.context.createOscillator();
+    let gainNode = this.props.context.createGain();
     gainNode.gain.value = 0;
 
     oscillator.type = 'triangle';
     oscillator.frequency.value = this.props.frequency;
+    oscillator.start()
 
     oscillator.connect(gainNode);
-    gainNode.connect(context.destination);
+    gainNode.connect(this.props.context.destination);
+
+    const initialOffset = Math.floor(Math.random() * 50000) / 1000
+    const notes = this.generateNotes(initialOffset);
+
+    // call generatenotes again with a now offset after the context current time has passed notesEndTime
     
     this.state = {
       playing: false,
-      context: context,
       oscillator: oscillator,
       gainNode: gainNode,
-      notes: []
+      notesEndTime: notes.notesEndTime,
+      notes: notes.notes
     };
   }
   
-  play(length) {
-    this.setState({ playing: true});
-    this.gain.linearRampToValueAtTime(1, this.context.currentTime + length/2.0);
-    this.gain.linearRampToValueAtTime(0, this.context.currentTime + length);
-    this.oscillator.start(this.context.currentTime);
-    this.oscillator.stop(this.context.currentTime + length);
+  scheduleNotes() {
+    this.state.notes.forEach((note) => {
+      this.state.gainNode.gain.setValueAtTime(0, note.startTime)
+      this.state.gainNode.gain.linearRampToValueAtTime(0.1, note.startTime + note.length / 2);
+      this.state.gainNode.gain.linearRampToValueAtTime(0, note.startTime + note.length)
+    })
   }
 
   render() {
-    if (!this.playing) {
-      let nextNote = null;
-      let index = 0;
-      while(!nextNote && index < this.props.notes.length) {
-        const note = this.props.notes[index]
-        if (note.startTime > this.context.currentTime) {
-          nextNote = note
-        }
-        index += 1;
-      }
-      if (nextNote) {
-        this.play(nextNote.length);
-      }
-    }
-
-
+    this.scheduleNotes()
     return (
       <div className="note"></div>
     );

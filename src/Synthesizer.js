@@ -4,44 +4,26 @@ import Voice from './Voice.js';
 class Synthesizer extends Component {
     constructor(props) {
         super(props);
+        let context = new (window.AudioContext || window.webkitAudioContext)();
+        
+        let voiceFrequencies = []
+        const octaves = [220, 440, 880]
+        const ratios = [ 1 / 3, 2 / 3, 1 / 4, 3 / 4, 2 / 5, 4 / 5, 2 / 7, 4 / 7, 1 / 8, 5 / 8, 7 / 8]
+        octaves.forEach((octave) => ratios.forEach((ratio) => voiceFrequencies.push( octave * ratio)))
         this.state = {
-            voices: [
-                {
-                    frequency: 440,
-                    notes: [
-                        {
-                            startTime: 1000,
-                            length: 3000
-                        },
-                        {
-                            startTime: 5000,
-                            length: 2500
-                        }
-                    ]
-                },
-                {
-                    frequency: 880,
-                    notes: [
-                        {
-                            startTime: 1500,
-                            length: 2750
-                        },
-                        {
-                            startTime: 5500,
-                            length: 2000
-                        }
-                    ]
-                }
-            ]
+            context: context,
+            voiceFrequencies: voiceFrequencies
         }
     }
   render() {
     return (
         <div>
-        {this.state.voices.map((voice, index) => <Voice key={index} frequency={ voice.frequency } notes={ voice.notes }></Voice> )}
+        {this.state.voiceFrequencies.map((freq, index) => 
+            <Voice 
+            key={index} 
+            frequency={ freq } 
+            context={this.state.context}></Voice> )}
         </div>
-        // generates a list of some notes to play in the future, and plays them
-        // once they've all been played, generates another list, etc.
     );
   }
 }
